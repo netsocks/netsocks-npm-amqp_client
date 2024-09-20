@@ -1,0 +1,55 @@
+{
+    "compilerOptions": {
+        "allowJs": true,
+        "baseUrl": "./",
+        "outDir": "./dist",
+        "downlevelIteration": true,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "incremental": true,
+        "isolatedModules": true,
+        "declaration": true,
+        "jsx": "preserve",
+        "lib": [
+            "dom",
+            "dom.iterable",
+            "esnext"
+        ],
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "noEmit": false,
+        "paths": {
+            "@library/*": [
+                "src/lib/*"
+            ],
+            "@build-info": [
+                "src/build-info.ts"
+            ],
+            "@utils/*": [
+                "src/lib/util/*"
+            ],
+            "@src/*": [
+                "src/lib/core/*"
+            ],
+            "@customTypes/*": [
+                "src/lib/types/*"
+            ]
+        },
+        "resolveJsonModule": true,
+        "skipLibCheck": true,
+        "strict": true,
+        "target": "es6"
+    },
+    "include": [
+        "src/**/*.ts",
+        "**/*.ts",
+        "**/*.tsx"
+    ],
+    "exclude": [
+        "node_modules",
+        "scripts/**",
+        "**/node_modules/*"
+    ]
+}

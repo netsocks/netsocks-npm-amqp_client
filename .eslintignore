@@ -1,0 +1,3 @@
+.env
+.eslintrc.cjs
+scripts/**

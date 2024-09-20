@@ -1,0 +1,61 @@
+{
+  "name": "@netsocks/amqp-client",
+  "version": "1.0.0",
+  "description": "AMQP Client/Manager for amqplib, This is a wrapper around \"amqp-connection-manager\" which provides easy queue/exchange management/creation",
+  "main": "dist/index.js",
+  "homepage": "https://netsocks.io",
+  "scripts": {
+    "prebuild": "node -p \"'export const LIB_VERSION = \\''+String(require('./package.json').version)+'\\';'\" > src/build-info.ts",
+    "build": "npm run clean && tsc && tsc-alias && npm pack",
+    "test": "npm run build && npm run start",
+    "start": "node dist/index.js",
+    "dev": "nodemon --exec ts-node -r tsconfig-paths/register index.ts",
+    "clean": "rm -rf ./dist && rm -rf *.tgz",
+    "lint": "eslint . --ext .js --ext .ts --ignore-path .gitignore",
+    "lint-fix": "eslint . --ext .js --ext .ts --ignore-path .gitignore --fix",
+    "prepublishOnly": "npm run lint && npm run build"
+  },
+  "keywords": [
+    "rabbitmq",
+    "amqp",
+    "amqplib",
+    "rabbit",
+    "queue",
+    "exchange",
+    "manager",
+    "client"
+  ],
+  "author": "soknifedev",
+  "license": "Apache-2.0",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "scripts",
+    "certificates/*.pub"
+  ],
+  "devDependencies": {
+    "@babel/eslint-parser": "^7.23.3",
+    "@types/amqplib": "^0.10.5",
+    "@types/node": "^22.5.5",
+    "@typescript-eslint/eslint-plugin": "^5.62.0",
+    "@typescript-eslint/parser": "^5.62.0",
+    "@wortise/eslint-config": "^1.2.0",
+    "eslint": "^8.53.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-import-resolver-typescript": "^3.6.1",
+    "eslint-plugin-align-import": "^1.0.0",
+    "eslint-plugin-babel": "^5.3.1",
+    "eslint-plugin-import": "^2.29.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-sort-keys-fix": "^1.1.2",
+    "nodemon": "^3.0.1",
+    "ts-node": "^10.9.1",
+    "tsc-alias": "^1.8.8",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.2.2"
+  },
+  "dependencies": {
+    "amqp-connection-manager": "^4.1.14",
+    "amqplib": "^0.10.4"
+  }
+}

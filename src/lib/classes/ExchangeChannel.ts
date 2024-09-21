@@ -12,17 +12,17 @@ class ExchangeChannel {
 
   config: IExchangeConfig;
 
-  private _channel?: ChannelWrapper;
+  #_wrapper?: ChannelWrapper;
 
   constructor(client: RabbitClient, config: IExchangeConfig) {
     this.client = client;
     this.config = Object.freeze(config);
   }
 
-  get channel() {
-    assert(this._channel, `Exchange channel "${this.config.name}" not established. Did you call .declareExchange()?`);
+  get wrapper() {
+    assert(this.#_wrapper, `Exchange channel "${this.config.name}" not established. Did you call .declareExchange()?`);
 
-    return this._channel;
+    return this.#_wrapper;
   }
 
   private _createWrapper(config: IExchangeConfig) {
@@ -37,6 +37,7 @@ class ExchangeChannel {
         if (concurrentMessageLimit && concurrentMessageLimit >= 1) {
           return channel.prefetch(concurrentMessageLimit);
         }
+
         return true;
       }
     });
@@ -53,7 +54,7 @@ class ExchangeChannel {
 
     assert(exists, `Could not connect to exchange "${config.name}": Exchange does not exist or is not reachable`);
 
-    this._channel = channel;
+    this.#_wrapper = channel;
 
     return this;
   }
@@ -68,7 +69,7 @@ class ExchangeChannel {
 
     assert(exists, `Could not connect to exchange "${config.name}": Exchange does not exist or is not reachable`);
 
-    this._channel = channel;
+    this.#_wrapper = channel;
 
     return this;
   }
@@ -95,12 +96,13 @@ class ExchangeChannel {
   async sendMessage(routingKey: string, buf: Buffer, options: Options.Publish = {}) {
     // assert(buf, 'buffer cannot be empty');
 
-    return this.channel
+    return this.wrapper
       .publish(this.config.name, routingKey, buf, options);
   }
 
   async consumeMessages(onMessageFn: Consumer['onMessage'], options: Options.Consume) {
-    return this.channel.consume(
+    // do we need the concurrentMessageLimit here?
+    return this.wrapper.consume(
       this.config.name,
       onMessageFn,
       options

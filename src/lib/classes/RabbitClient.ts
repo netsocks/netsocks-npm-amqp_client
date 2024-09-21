@@ -3,7 +3,10 @@ import assert from 'node:assert';
 import amqp, { AmqpConnectionManager } from 'amqp-connection-manager';
 
 import type {
-  IExchangeConfig, IExchanges, IMemoryConnections, IQueueConfig,
+  IExchangeAction,
+  IExchangeConfig, IExchanges, IMemoryConnections,
+  IQueueAssertConfig,
+  IQueueBindConfig,
   IQueues
 } from '@library/types/internal-types';
 import type { RabbitClientConfig } from '@library/types/public-types';
@@ -23,7 +26,7 @@ export class RabbitClient {
 
   private _queues: IQueues = {};
 
-  static get(name = '_def') {
+  static instance(name = '_def') {
     const client = inMemoryClients[name];
 
     assert(name, 'name is required');
@@ -61,13 +64,16 @@ export class RabbitClient {
   constructor(config: RabbitClientConfig) {
     config.port = config.port || 5672;
     config.name = config.name ?? '_def';
+    config.protocol = config.protocol || 'amqp';
 
     this.config = config;
     inMemoryClients[config.name] = this;
   }
 
   async connect() {
-    this._connection = amqp.connect(this.config);
+    this._connection = amqp.connect(this.config, {
+
+    });
 
     this._connection.on('error', (err) => {
       Log.e('Connection error:', err);
@@ -76,14 +82,14 @@ export class RabbitClient {
     return this;
   }
 
-  async declareExchange(config: IExchangeConfig) {
+  async declareExchange(action: IExchangeAction, config: IExchangeConfig) {
     assert(config.name, 'name is required');
 
     const exchange = new ExchangeChannel(this, config);
 
     assert(!this._exchanges[config.name], `Trying to declare exchange "${config.name}": it already exists`);
 
-    if (config.action === 'create') {
+    if (action === 'create') {
       await exchange.create(config);
       this._exchanges[config.name] = exchange;
     } else {
@@ -91,26 +97,35 @@ export class RabbitClient {
       this._exchanges[config.name] = exchange;
     }
 
-    return exchange;
+    return this;
   }
 
 
-  async declareQueue(config: IQueueConfig) {
+  async bindQueue(config: IQueueBindConfig) {
     assert(config.name, 'name is required');
 
     const queue = new QueueChannel(this, config);
 
     assert(!this._queues[config.name], `Trying to declare queue "${config.name}": it already exists`);
 
-    if (config.action === 'create') {
-      await queue.create(config);
-      this._queues[config.name] = queue;
-    } else {
-      await queue.bindToExchange(config);
-      this._queues[config.name] = queue;
-    }
+    await queue.bindToExchange(config);
+    this._queues[config.name] = queue;
 
-    return queue;
+    return this;
+  }
+
+
+  async assertQueue(config: IQueueAssertConfig) {
+    assert(config.name, 'name is required');
+
+    const queue = new QueueChannel(this, config);
+
+    assert(!this._queues[config.name], `Trying to declare queue "${config.name}": it already exists`);
+
+    await queue.create(config);
+    this._queues[config.name] = queue;
+
+    return this;
   }
 
 

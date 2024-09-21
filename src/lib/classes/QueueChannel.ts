@@ -1,32 +1,35 @@
 import assert from 'node:assert';
 
 import { Channel, ChannelWrapper, Options } from 'amqp-connection-manager';
-import type { Consumer }                    from 'amqp-connection-manager/dist/types/ChannelWrapper';
 
 import type { RabbitClient } from '@library/classes/RabbitClient';
-import type { IQueueConfig } from '@library/types/internal-types';
+import type {
+  IQueueAssertConfig,
+  IQueueBindConfig
+} from '@library/types/internal-types';
+import { IConsumerFn } from '@library/types/public-types';
 
 
 class QueueChannel {
   client: RabbitClient;
 
-  config: IQueueConfig;
+  config: Readonly<IQueueBindConfig | IQueueAssertConfig>;
 
-  private _channel?: ChannelWrapper;
+  #_wrapper?: ChannelWrapper;
 
-  constructor(client: RabbitClient, config: IQueueConfig) {
+  constructor(client: RabbitClient, config: typeof QueueChannel.prototype.config) {
     this.client = client;
     this.config = Object.freeze(config);
     assert(this.config.name, 'queue name is required');
   }
 
-  get channel() {
-    assert(this._channel, `Queue channel "${this.config.name}" not established. Did you call .declareQueue()?`);
+  get wrapper() {
+    assert(this.#_wrapper, `Queue channel "${this.config.name}" not established. Did you call .declareQueue()?`);
 
-    return this._channel;
+    return this.#_wrapper;
   }
 
-  private _createWrapper(config: IQueueConfig) {
+  private _createWrapper(config: typeof QueueChannel.prototype.config) {
     const { name, concurrentMessageLimit } = config;
 
     assert(name, 'name is required');
@@ -44,9 +47,8 @@ class QueueChannel {
     return channelWrapper;
   }
 
-  async bindToExchange(config: IQueueConfig) {
+  async bindToExchange(config: IQueueBindConfig) {
     assert(config.name, 'name is required');
-    assert(config.action === 'bind', 'action must be "bind"');
     assert(config.exchangeName, 'exchangeName is required');
     // assert(config.pattern, 'pattern is required');
 
@@ -60,18 +62,17 @@ class QueueChannel {
 
     await channel.bindQueue(name, exchangeName, pattern, args);
 
-    const exists = await channel.checkExchange(config.name);
+    const exists = await channel.checkQueue(config.name);
 
-    assert(exists, `Could not connect to exchange "${config.name}": Exchange does not exist or is not reachable`);
+    assert(exists, `Could not connect to queue "${config.name}": Queue does not exist or is not reachable`);
 
-    this._channel = channel;
+    this.#_wrapper = channel;
 
     return this;
   }
 
-  async create(config: IQueueConfig) {
+  async create(config: IQueueAssertConfig) {
     assert(config.name, 'name is required');
-    assert(config.action === 'create', 'action must be "create"');
 
     const channel = this._createWrapper(config);
 
@@ -81,7 +82,7 @@ class QueueChannel {
 
     assert(exists, `Could not create queue "${config.name}": assertQueue failed`);
 
-    this._channel = channel;
+    this.#_wrapper = channel;
 
     return this;
   }
@@ -102,16 +103,25 @@ class QueueChannel {
   }
 
   async sendMessage(buf: Buffer, options: Options.Publish = {}) {
-    return this.channel.sendToQueue(this.config.name, buf, options);
+    return this.wrapper.sendToQueue(this.config.name, buf, options);
   }
 
-  async consumeMessages(onMessageFn: Consumer['onMessage'], options: Options.Consume) {
-    return this.channel.consume(
+  async consumeMessages(onMessageFn: IConsumerFn, options?: Options.Consume) {
+    // do we need the concurrentMessageLimit here?
+    return this.wrapper.consume(
       this.config.name,
       onMessageFn,
       options
     );
   }
+
+  // assert(condition: any, message: Parameters<Consumer['onMessage']>[0]) {
+  //   if (!condition) {
+  //     this.wrapper.ack(message);
+  //   }
+
+  //   assert(condition, 'Assertion failed');
+  // }
 
 
 }

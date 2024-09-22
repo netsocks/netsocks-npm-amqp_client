@@ -29,9 +29,7 @@
   "license": "Apache-2.0",
   "types": "dist/index.d.ts",
   "files": [
-    "dist",
-    "scripts",
-    "certificates/*.pub"
+    "dist"
   ],
   "devDependencies": {
     "@babel/eslint-parser": "^7.23.3",

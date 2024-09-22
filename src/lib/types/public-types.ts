@@ -5,7 +5,7 @@ import type ExchangeChannel from '@library/classes/ExchangeChannel';
 import type QueueChannel    from '@library/classes/QueueChannel';
 
 export type RabbitClientConfig = {
-  protocol: string | 'amqp';
+  protocol?: string | 'amqp';
   host: string;
   port?: number | 5672;
   username: string;

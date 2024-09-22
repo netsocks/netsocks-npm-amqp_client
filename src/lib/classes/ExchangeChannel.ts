@@ -77,7 +77,7 @@ class ExchangeChannel {
   async sendJSONMessage(
     routingKey: string,
     message: Object,
-    options: Options.Publish,
+    options?: Options.Publish,
     persistent = true
   ) {
     const mergedOptions = options ?? {};

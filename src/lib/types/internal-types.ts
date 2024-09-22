@@ -10,7 +10,7 @@ type IQueueBaseConfig = {
 }
 
 export type IQueueAssertConfig = IQueueBaseConfig & {
-  options: Options.AssertQueue,
+  options?: Options.AssertQueue,
 }
 
 export type IQueueBindConfig = IQueueBaseConfig & {

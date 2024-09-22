@@ -115,7 +115,7 @@ export class RabbitClient {
   }
 
 
-  async assertQueue(config: IQueueAssertConfig) {
+  async declareQueue(config: IQueueAssertConfig) {
     assert(config.name, 'name is required');
 
     const queue = new QueueChannel(this, config);

@@ -4,6 +4,7 @@
   "description": "AMQP Client/Manager for amqplib, This is a wrapper around \"amqp-connection-manager\" which provides easy queue/exchange management/creation",
   "main": "dist/index.js",
   "homepage": "https://netsocks.io",
+  "private": false,
   "scripts": {
     "prebuild": "node -p \"'export const LIB_VERSION = \\''+String(require('./package.json').version)+'\\';'\" > src/build-info.ts",
     "build": "npm run clean && tsc && tsc-alias && npm pack",
@@ -25,6 +26,13 @@
     "manager",
     "client"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/netsocks/netsocks-npm-amqp_client"
+  },
+  "bugs": {
+    "url": "https://github.com/netsocks/netsocks-npm-amqp_client/issues"
+  },
   "author": "soknifedev",
   "license": "Apache-2.0",
   "types": "dist/index.d.ts",

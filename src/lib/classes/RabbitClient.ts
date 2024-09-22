@@ -87,7 +87,10 @@ export class RabbitClient {
 
     const exchange = new ExchangeChannel(this, config);
 
-    assert(!this._exchanges[config.name], `Trying to declare exchange "${config.name}": it already exists`);
+    if (this._exchanges[config.name]) {
+      console.warn(`Trying to declare exchange "${config.name}": it already exists, existing exchange will be used`);
+      return this._exchanges[config.name];
+    }
 
     if (action === 'create') {
       await exchange.create(config);
@@ -97,7 +100,7 @@ export class RabbitClient {
       this._exchanges[config.name] = exchange;
     }
 
-    return this;
+    return this._exchanges[config.name];
   }
 
 
@@ -106,12 +109,15 @@ export class RabbitClient {
 
     const queue = new QueueChannel(this, config);
 
-    assert(!this._queues[config.name], `Trying to declare queue "${config.name}": it already exists`);
+    if (this._queues[config.name]) {
+      console.warn(`Trying to bind queue "${config.name}": it already exists, existing queue will be used`);
+      return this._queues[config.name];
+    }
 
     await queue.bindToExchange(config);
     this._queues[config.name] = queue;
 
-    return this;
+    return queue;
   }
 
 
@@ -120,12 +126,15 @@ export class RabbitClient {
 
     const queue = new QueueChannel(this, config);
 
-    assert(!this._queues[config.name], `Trying to declare queue "${config.name}": it already exists`);
+    if (this._queues[config.name]) {
+      console.warn(`Trying to bind queue "${config.name}": it already exists, existing queue will be used`);
+      return this._queues[config.name];
+    }
 
     await queue.create(config);
     this._queues[config.name] = queue;
 
-    return this;
+    return this._queues[config.name];
   }
 
 

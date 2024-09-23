@@ -1,6 +1,6 @@
 {
   "name": "@netsocks/amqp-client",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "AMQP Client/Manager for amqplib, This is a wrapper around \"amqp-connection-manager\" which provides easy queue/exchange management/creation",
   "main": "dist/index.js",
   "homepage": "https://netsocks.io",

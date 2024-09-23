@@ -75,9 +75,22 @@ export class RabbitClient {
 
     });
 
-    this._connection.on('error', (err) => {
-      Log.e('Connection error:', err);
+    this._connection.on('connectFailed', (err) => {
+      Log.e('Broker Connection error:', err);
     });
+
+    this._connection.on('disconnect', (err) => {
+      Log.e('Disconnected from broker:', err);
+    });
+
+    this._connection.on('blocked', (reason) => {
+      Log.e('Blocked from broker:', reason);
+    });
+
+    this._connection.on('unblocked', () => {
+      Log.e('Unblocked from broker');
+    });
+
 
     return this;
   }

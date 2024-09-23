@@ -1,19 +1,12 @@
 import type { ChannelWrapper } from 'amqp-connection-manager';
+import amqp                    from 'amqp-connection-manager';
 import type { Consumer }       from 'amqp-connection-manager/dist/types/ChannelWrapper';
 
 import type ExchangeChannel from '@library/classes/ExchangeChannel';
 import type QueueChannel    from '@library/classes/QueueChannel';
 
-export type RabbitClientConfig = {
-  protocol?: string | 'amqp';
-  host: string;
-  port?: number | 5672;
-  username: string;
-  password: string;
-  vhost: string;
-  name?: string;
-}
-
+export type IConnectUri = Parameters<typeof amqp.connect>[0]
+export type IConnectOptions = Parameters<typeof amqp.connect>[1]
 export type IChannelWrapper = ChannelWrapper;
 export type IQueueChannel = QueueChannel;
 export type IExchangeChannel = ExchangeChannel;

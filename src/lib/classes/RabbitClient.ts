@@ -9,8 +9,8 @@ import type {
   IQueueBindConfig,
   IQueues
 } from '@library/types/internal-types';
-import type { RabbitClientConfig } from '@library/types/public-types';
-import Log                         from '@library/util/Log';
+import { IConnectOptions, IConnectUri } from '@library/types/public-types';
+import Log                              from '@library/util/Log';
 
 import ExchangeChannel from './ExchangeChannel';
 import QueueChannel    from './QueueChannel';
@@ -20,19 +20,22 @@ const inMemoryClients: IMemoryConnections = {};
 export class RabbitClient {
   private _connection?: AmqpConnectionManager;
 
-  private _exchanges: IExchanges  = {};
+  private name: string;
 
-  private config: RabbitClientConfig;
+  private _exchanges: IExchanges  = {};
 
   private _queues: IQueues = {};
 
+  connectionUri: IConnectUri;
+
   static instance(name = '_def') {
+    assert(name, 'name is required');
+
     const client = inMemoryClients[name];
 
-    assert(name, 'name is required');
     assert(
       inMemoryClients[name],
-      `Client connection "${name}" does not exist.Available ones are: ${Object.keys(inMemoryClients).join(', ')}`
+      `Client connection "${name}" does not exist. Available ones are: ${Object.keys(inMemoryClients).join(', ')}`
     );
 
 
@@ -61,19 +64,14 @@ export class RabbitClient {
     return this._connection;
   }
 
-  constructor(config: RabbitClientConfig) {
-    config.port = config.port || 5672;
-    config.name = config.name ?? '_def';
-    config.protocol = config.protocol || 'amqp';
-
-    this.config = config;
-    inMemoryClients[config.name] = this;
+  constructor(connectionUri:  IConnectUri, name?: string) {
+    this.name = name ?? '_def';
+    inMemoryClients[this.name] = this;
+    this.connectionUri = connectionUri;
   }
 
-  async connect() {
-    this._connection = amqp.connect(this.config, {
-
-    });
+  async connect(connectionOptions?: IConnectOptions) {
+    this._connection = amqp.connect(this.connectionUri, connectionOptions);
 
     this._connection.on('connectFailed', (err) => {
       Log.e('Broker Connection error:', err);

@@ -73,7 +73,7 @@ class QueueChannel {
       exchangeName, pattern, args
     } = config;
 
-    if (this.realQueueName !== '') {
+    if (typeof this.realName !== 'string') {
       const exists = await channel.checkQueue(this.realQueueName);
 
       assert(exists, `Could not connect to queue "${this.realQueueName}": Queue does not exist or is not reachable`);

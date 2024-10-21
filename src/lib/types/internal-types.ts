@@ -7,6 +7,7 @@ import { IExchangeChannel, IQueueChannel } from './public-types';
 type IQueueBaseConfig = {
   concurrentMessageLimit?: number,
   name: string,
+  realName?: string,
 }
 
 export type IQueueAssertConfig = IQueueBaseConfig & {
@@ -15,7 +16,7 @@ export type IQueueAssertConfig = IQueueBaseConfig & {
 
 export type IQueueBindConfig = IQueueBaseConfig & {
   exchangeName: string,
-  pattern: string,
+  pattern: string | string[],
   args?: any
 }
 

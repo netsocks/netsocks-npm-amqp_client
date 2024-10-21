@@ -125,7 +125,7 @@ export class RabbitClient {
       return this._queues[config.name];
     }
 
-    await queue.bindToExchange(config);
+    await queue.bindToExchange();
     this._queues[config.name] = queue;
 
     return queue;
@@ -142,7 +142,7 @@ export class RabbitClient {
       return this._queues[config.name];
     }
 
-    await queue.create(config);
+    await queue.create();
     this._queues[config.name] = queue;
 
     return this._queues[config.name];

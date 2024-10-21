@@ -17,10 +17,21 @@ class QueueChannel {
 
   #_wrapper?: ChannelWrapper;
 
+  realName?: string;
+
   constructor(client: RabbitClient, config: typeof QueueChannel.prototype.config) {
     this.client = client;
     this.config = Object.freeze(config);
     assert(this.config.name, 'queue name is required');
+
+    if ((typeof this.config.realName === 'string')) {
+      this.realName = this.config.realName;
+    }
+  }
+
+  get realQueueName() {
+    if (typeof this.realName !== 'string') return this.config.name;
+    return this.realName.trim();
   }
 
   get wrapper() {
@@ -47,7 +58,9 @@ class QueueChannel {
     return channelWrapper;
   }
 
-  async bindToExchange(config: IQueueBindConfig) {
+  async bindToExchange() {
+    const config = this.config as IQueueBindConfig;
+
     assert(config.name, 'name is required');
     assert(config.exchangeName, 'exchangeName is required');
     // assert(config.pattern, 'pattern is required');
@@ -57,30 +70,51 @@ class QueueChannel {
     await channel.waitForConnect();
 
     const {
-      name, exchangeName, pattern, args
+      exchangeName, pattern, args
     } = config;
 
-    await channel.bindQueue(name, exchangeName, pattern, args);
+    if (this.realQueueName !== '') {
+      const exists = await channel.checkQueue(this.realQueueName);
 
-    const exists = await channel.checkQueue(config.name);
+      assert(exists, `Could not connect to queue "${this.realQueueName}": Queue does not exist or is not reachable`);
+    } else {
+      const exists = await channel.assertQueue(this.realQueueName, {
+        autoDelete: true,
+        durable:    false
+      });
 
-    assert(exists, `Could not connect to queue "${config.name}": Queue does not exist or is not reachable`);
+      this.realName = exists.queue;
+    }
+
+
+    if (Array.isArray(pattern)) {
+      // eslint-disable-next-line no-restricted-syntax
+      for await (const p of pattern) {
+        await channel.bindQueue(this.realQueueName, exchangeName, p, args);
+      }
+    } else {
+      await channel.bindQueue(this.realQueueName, exchangeName, pattern, args);
+    }
+
 
     this.#_wrapper = channel;
 
     return this;
   }
 
-  async create(config: IQueueAssertConfig) {
+  async create() {
+    const config = this.config as IQueueAssertConfig;
+
     assert(config.name, 'name is required');
 
     const channel = this._createWrapper(config);
 
     await channel.waitForConnect();
 
-    const exists = await channel.assertQueue(config.name, config.options);
 
-    assert(exists, `Could not create queue "${config.name}": assertQueue failed`);
+    const exists = await channel.assertQueue(this.realQueueName, config.options);
+
+    assert(exists, `Could not create queue "${this.realQueueName}": assertQueue failed`);
 
     this.#_wrapper = channel;
 
@@ -103,13 +137,15 @@ class QueueChannel {
   }
 
   async sendMessage(buf: Buffer, options: Options.Publish = {}) {
-    return this.wrapper.sendToQueue(this.config.name, buf, options);
+
+    return this.wrapper.sendToQueue(this.realQueueName, buf, options);
   }
 
   async consumeMessages(onMessageFn: IConsumerFn, options?: Options.Consume) {
     // do we need the concurrentMessageLimit here?
+
     return this.wrapper.consume(
-      this.config.name,
+      this.realQueueName,
       onMessageFn,
       options
     );

@@ -111,6 +111,10 @@ export class RabbitClient {
       this._exchanges[config.name] = exchange;
     }
 
+    exchange.on('error', (err) => {
+      Log.e(`Exchange "${config.name}" error:`, err);
+    });
+
     return this._exchanges[config.name];
   }
 
@@ -119,6 +123,10 @@ export class RabbitClient {
     assert(config.name, 'name is required');
 
     const queue = new QueueChannel(this, config);
+
+    queue.on('error', (err) => {
+      Log.e(`Queue "${config.name}" error:`, err);
+    });
 
     if (this._queues[config.name]) {
       console.warn(`Trying to bind queue "${config.name}": it already exists, existing queue will be used`);

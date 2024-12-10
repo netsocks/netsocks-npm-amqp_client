@@ -1,4 +1,5 @@
-import assert from 'node:assert';
+import assert       from 'node:assert';
+import EventEmitter from 'node:events';
 
 import { Channel, ChannelWrapper, Options } from 'amqp-connection-manager';
 
@@ -10,7 +11,7 @@ import type {
 import { IConsumerFn } from '@library/types/public-types';
 
 
-class QueueChannel {
+class QueueChannel extends EventEmitter {
   client: RabbitClient;
 
   config: Readonly<IQueueBindConfig | IQueueAssertConfig>;
@@ -20,6 +21,7 @@ class QueueChannel {
   realName?: string;
 
   constructor(client: RabbitClient, config: typeof QueueChannel.prototype.config) {
+    super();
     this.client = client;
     this.config = Object.freeze(config);
     assert(this.config.name, 'queue name is required');
@@ -55,6 +57,13 @@ class QueueChannel {
         return true;
       }
     });
+
+    // bind all channel events to class events, (act as a proxy??)
+
+    channelWrapper.on('connect', () => this.emit('connect'));
+    channelWrapper.on('error', (err) => this.emit('error', err));
+    channelWrapper.on('close', () => this.emit('close'));
+
     return channelWrapper;
   }
 

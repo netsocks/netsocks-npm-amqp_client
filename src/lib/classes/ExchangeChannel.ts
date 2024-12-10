@@ -1,4 +1,5 @@
-import assert from 'node:assert';
+import assert       from 'node:assert';
+import EventEmitter from 'node:events';
 
 import { Channel, ChannelWrapper, Options } from 'amqp-connection-manager';
 import type { Consumer }                    from 'amqp-connection-manager/dist/types/ChannelWrapper';
@@ -7,7 +8,7 @@ import type { RabbitClient }    from '@library/classes/RabbitClient';
 import type { IExchangeConfig } from '@library/types/internal-types';
 
 
-class ExchangeChannel {
+class ExchangeChannel extends EventEmitter {
   client: RabbitClient;
 
   config: IExchangeConfig;
@@ -15,6 +16,7 @@ class ExchangeChannel {
   #_wrapper?: ChannelWrapper;
 
   constructor(client: RabbitClient, config: IExchangeConfig) {
+    super();
     this.client = client;
     this.config = Object.freeze(config);
   }
@@ -41,6 +43,13 @@ class ExchangeChannel {
         return true;
       }
     });
+
+    // bind all channel events to class events, (act as a proxy??)
+
+    channelWrapper.on('connect', () => this.emit('connect'));
+    channelWrapper.on('error', (err) => this.emit('error', err));
+    channelWrapper.on('close', () => this.emit('close'));
+
     return channelWrapper;
   }
 
